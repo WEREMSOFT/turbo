@@ -1,25 +1,56 @@
-# Turbo
+# +Turbo IDE
 
-Turbo is an experimental text editor for the terminal, based on the [Scintilla](https://www.scintilla.org/index.html) code editing component by Neil Hodgson and the [Turbo Vision](https://github.com/magiblot/tvision) application framework.
++Turbo is a fork from the original [Turbo Editor](https://github.com/magiblot/turbo) project. Its a mixture of 3 projects: [TurboVision App framework](https://github.com/magiblot/tvision), [Scintilla](https://www.scintilla.org/index.html) (for sintax highlighting), and , as I said, [Turbo Editor](https://github.com/magiblot/turbo) for the already implemented multi document editor funcitonality and sintax highlighting.
 
-It was created to demonstrate new features in Turbo Vision. In particular, it has served as testing ground for Turbo Vision's Unicode capabilities.
+It's an IDE. Its not an editor. It has integration with debugger, help for specific functions (only in C trough man pages), and project management.
 
-As a text editor, Turbo aims at being intuitive and easy to use. Usability and productivity are its two other major objectives, although it has not got that far yet. And only for being a Turbo Vision application, it offers a vintage look and feel.
+The reason to make a custom fork was to have more freedom to change stuff and don't bother the repo owner with pull requests that can make the development cycle take longer.
 
-The original location of this project is https://github.com/magiblot/turbo.
+It adds the following functionality that I wanted for myself:
 
-![Turbo](https://user-images.githubusercontent.com/20713561/89552632-b7053380-d80c-11ea-92e0-a8c30f80cd49.png)
+- [x] Remove the Line numbers by default (can be re enabled).
+- [x] Default color scheme matching the old Borland Turbo C++.
+- [x] File browser shows the contents of the current folder. Not only the open files.
+- [ ] Integration with GDB.
+- [ ] Integration with (and only with)Makefiles. Including saving project preferences in special comments.
+- [ ] Project templates, allows to create C projects that uses Opengl, SDL3 or GLFW and compiles to binary or to a browser using emscripten.
+- [ ] Installing libraries needed for the project templates.
 
-## Downloads
+# But why?
 
-* Unix systems: you'll have to build Turbo yourself. You may follow the build instructions in the next section.
-* Windows: you can find up-to-date binaries in the [Actions](https://github.com/magiblot/turbo/actions?query=branch:master+event:push) page. Click on the first successful workflow (with a green tick) in the list. At the bottom of the workflow page, as long as you have logged in to GitHub, you'll find an *Artifacts* section with the following files:
-    * `turbo-x86.zip`: 32-bit executable built with MSVC. Windows Vista or later required.
-    * `turbo-x64.zip`: 64-bit executable built with MSVC. x64 Windows Vista or later required.
+I wanted an IDE that doesn't bother you with 
+
+* Popups asking for updates.
+* Pry to sell you something.
+* Recomends you plugins.
+* Has autocomplete.
+* NOT having a proper integration with a debugger (there are many editors out there, but not much IDE's).
+* Displays a help when pressing F1 over a function name (through man pages).
+* Is written in C/C++.
+* It's just one file.
+* Doesn't have dependencies (actually, all dependencies are included as part of the code).
+
+# FAQ
+
+## Can I contribute with the project?
+
+No, Pull Requests are closed.
+
+## What if I found a bug and I can enumerate the steps to reproduce it?
+
+Don't use the program that way.
+
+## I like the project, what if I want to use it but I need a functionality?
+
+Fork it and change it. It should be easy enough to modify the code and customize it to your needs or liking.
+
+## What's the license for this software?
+
+I don't know.
 
 ## Building
 
-First of all, you should clone this repository along its submodules with the `--recursive` option of `git clone`.
+Clone the repo.
 
 Then, make sure the following dependencies are installed:
 
@@ -75,13 +106,15 @@ sudo cp turbo /usr/local/bin/ # Install (optional).
 
 * **turbo** [*file*...]
 
-In order to open several files in a directory tree you should use wildcards or subcommands, if they are supported by your command shell. For example, in Unix:
+In order to open several files in a directory tree you should use wildcards or subcommands, if they are supported by your command shell. Also, you can open a folder using the same logic. For example, in Unix:
 
 ```sh
 # Open all .c and .h files in the current directory and its subdirectories
 turbo `find . -type f -name '*.c' -o -name '*.h'`
 # Open all files in the current directory and its subdirectories, excluding executables and hidden files or directories
 turbo `find . -type f \! -executable \! -path '*/.*'`
+# Open the current folder.
+turbo .
 ```
 
 ### In-app
