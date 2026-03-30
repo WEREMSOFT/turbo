@@ -33,6 +33,7 @@
 #include <variant>
 
 using namespace Scintilla;
+namespace fs = std::filesystem;
 
 TurboApp::TurboApp(int argc, const char *argv[]) noexcept :
     TProgInit( &TurboApp::initStatusLine,
@@ -248,6 +249,8 @@ void TurboApp::handleEvent(TEvent &event)
     if (event.what == evCommand) {
         handled = true;
         switch (event.message.command) {
+			case 666:
+				messageBox("opening folder!", mfOKButton); break;
             case cmNew: fileNew(); break;
             case cmOpen: fileOpen(); break;
 			case cmOpenFolder: folderOpen(); break;
@@ -310,8 +313,6 @@ void TurboApp::parseArgs()
             current->setText("%s", argv[i]);
             TScreen::flushScreen();
 			
-			namespace fs = std::filesystem;
-
 			if(fs::is_directory(argv[i]))
 			{
 				for(const auto& entry : fs::directory_iterator(argv[i]))
@@ -339,12 +340,25 @@ void TurboApp::fileNew()
 
 void TurboApp::folderOpen()
 {
-    messageBox("opening folder!", mfOKButton);
-	TView *d = validView( new TChDirDialog( 0, 0 ) );
+	TView *d = validView( new TChDirDialog( 0, 666 ) );
 
     if( d != 0 ) {
         deskTop->execView( d );
         destroy(d);
+		char path[MAXDIR] = {0}; 
+		getcwd(path, MAXDIR);
+		if(fs::is_directory(path))
+		{
+			for(const auto& entry : fs::directory_iterator(path))
+			{
+				if(fs::is_regular_file(entry.path()))
+				{
+					auto p = entry.path();
+					auto pathString = p.string();
+					folderTree->tree->addFileNode(pathString);
+				}
+			}
+		}
     }
 }
 
