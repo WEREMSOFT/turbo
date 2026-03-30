@@ -14,7 +14,9 @@
 #define Uses_TStaticText
 #define Uses_TParamText
 #define Uses_TScreen
+#define Uses_TChDirDialog
 #define Uses_TButton
+#define Uses_MsgBox
 #include <tvision/tv.h>
 #include <filesystem>
 
@@ -132,6 +134,7 @@ TMenuBar *TurboApp::initMenuBar(TRect r)
         *new TSubMenu( "~F~ile", kbAltF, hcNoContext ) +
             *new TMenuItem( "~N~ew", cmNew, kbCtrlN, hcNoContext, "Ctrl-N" ) +
             *new TMenuItem( "~O~pen", cmOpen, kbCtrlO, hcNoContext, "Ctrl-O" ) +
+            *new TMenuItem( "Open Folder", cmOpenFolder, kbNoKey, hcNoContext ) +
             newLine() +
             *new TMenuItem( "~S~ave", cmSave, kbCtrlS, hcNoContext, "Ctrl-S" ) +
             *new TMenuItem( "S~a~ve As...", cmSaveAs, kbNoKey, hcNoContext ) +
@@ -247,6 +250,7 @@ void TurboApp::handleEvent(TEvent &event)
         switch (event.message.command) {
             case cmNew: fileNew(); break;
             case cmOpen: fileOpen(); break;
+			case cmOpenFolder: folderOpen(); break;
             case cmEditorNext:
             case cmEditorPrev:
                 showEditorList(&event);
@@ -331,6 +335,17 @@ void TurboApp::parseArgs()
 void TurboApp::fileNew()
 {
     addEditor(createScintilla(), "");
+}
+
+void TurboApp::folderOpen()
+{
+    messageBox("opening folder!", mfOKButton);
+	TView *d = validView( new TChDirDialog( 0, 0 ) );
+
+    if( d != 0 ) {
+        deskTop->execView( d );
+        destroy(d);
+    }
 }
 
 void TurboApp::fileOpen()

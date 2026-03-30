@@ -57,6 +57,7 @@ const ushort
     cmChDir         = 35,
     cmDosShell      = 36,
     cmCloseAll      = 37,
+    cmOpenFolder	= 38,
 
 //  TView State masks
 

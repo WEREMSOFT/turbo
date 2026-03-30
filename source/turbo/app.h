@@ -42,6 +42,7 @@ struct TurboApp : public TApplication, EditorWindowParent
 
     void fileNew();
     void fileOpen();
+	void folderOpen();
     void fileOpenOrNew(const char *path);
 	void fileOpenOrNew(const char *path, EditorWindow** editorWindow);
     void closeAll();
