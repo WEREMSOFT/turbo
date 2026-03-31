@@ -1,6 +1,7 @@
 #include "help.h"
 #include <tvision/help.h>
 
+#define Uses_MsgBox
 #define Uses_TButton
 #define Uses_TDialog
 #define Uses_TGroup
@@ -10,6 +11,8 @@
 #include "cmds.h"
 #include <sstream>
 
+#include <array>
+#include "editwindow.h"
 static constexpr TStringView aboutDialogText =
     "\003Turbo"
 #ifdef TURBO_VERSION_STRING
@@ -171,14 +174,50 @@ static THelpFile &createInMemoryHelpFile(TSpan<const TStringView> paragraphs) no
     return helpFile;
 }
 
-void TurboHelp::showOrFocusHelpWindow(TGroup &owner) noexcept
+void TurboHelp::showOrFocusHelpWindow(TGroup &owner, char* selectedText) noexcept
 {
     auto *helpWindow =
         (TurboHelpWindow *) message(&owner, evBroadcast, cmFindHelpWindow, nullptr);
 
     if (helpWindow == 0)
     {
-        THelpFile &helpFile = createInMemoryHelpFile(helpParagraphs);
+		char cmd[100] = {0};
+		FILE* pipe = nullptr;
+
+		if(selectedText != nullptr && strlen(selectedText) != 0)
+		{
+			snprintf(cmd, 100, "man 3 %s", selectedText);
+			pipe = popen(cmd, "r");
+		}
+
+		std::array<char, 256> manPage;
+		std::string result;
+
+		if(!pipe || strlen(selectedText) == 0)
+		{
+			for (const auto &p : helpParagraphs)
+			{
+				result += p.data();
+			}
+		} else {
+			while(fgets(manPage.data(), manPage.size(), pipe) != nullptr)
+			{
+				result += manPage.data();
+			}
+
+			if(result.size() == 0)
+			{
+				result += "No man page found for \"";
+				result +=  selectedText;
+				result += "\"";
+			}
+		}
+
+
+		TStringView sv{result.data(), result.size()};
+
+		THelpFile &helpFile = createInMemoryHelpFile(TSpan<const TStringView>(&sv, 1));
+
         helpWindow = new TurboHelpWindow(helpFile);
 
         // Resize the Help Window so that:

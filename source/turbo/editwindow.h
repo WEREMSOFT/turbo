@@ -48,6 +48,8 @@ struct EditorWindow : public turbo::BasicEditorWindow
 {
     using super = turbo::BasicEditorWindow;
 
+	char currentSelection[MAX_PATH] = {0};
+
     list_head<EditorWindow> listHead;
     FileNumberState fileNumber;
     EditorWindowParent &parent;

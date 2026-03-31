@@ -249,8 +249,6 @@ void TurboApp::handleEvent(TEvent &event)
     if (event.what == evCommand) {
         handled = true;
         switch (event.message.command) {
-			case 666:
-				messageBox("opening folder!", mfOKButton); break;
             case cmNew: fileNew(); break;
             case cmOpen: fileOpen(); break;
 			case cmOpenFolder: folderOpen(); break;
@@ -273,7 +271,7 @@ void TurboApp::handleEvent(TEvent &event)
                 TurboHelp::executeAboutDialog(*deskTop);
                 break;
             case cmHelp:
-                TurboHelp::showOrFocusHelpWindow(*deskTop);
+                TurboHelp::showOrFocusHelpWindow(*deskTop, (char*)event.message.infoPtr);
                 break;
 			case cmFolderTreeClick:
 				{

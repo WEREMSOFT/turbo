@@ -157,6 +157,16 @@ void EditorWindow::handleEvent(TEvent &ev)
                     if ((handled = bottomView && ev.message.infoPtr == bottomView))
                         closeBottomView();
                     break;
+				case cmHelp:
+					{
+						sptr_t len = editor.callScintilla(SCI_GETSELTEXT, 0, 0); // returns length of word chars string
+						editor.callScintilla(SCI_GETSELTEXT, 0, reinterpret_cast<sptr_t>(currentSelection));
+						currentSelection[len] = '\0'; // null-terminate
+						ev.message.infoPtr = currentSelection;
+						// messageBox(0, "test: %s", wordChars);
+					}
+					handled = false;
+					break;
                 default:
                     handled = false;
             }
