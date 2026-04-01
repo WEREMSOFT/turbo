@@ -61,6 +61,9 @@ const ushort
     cmNewBasicCProject		= 39,
     cmNewBasicSDL3CProject	= 40,
     cmNewBasicGLFWCProject	= 41,
+	cmBuild					= 42,
+	cmClean					= 43,
+	cmRun					= 44,
 
 //  TView State masks
 

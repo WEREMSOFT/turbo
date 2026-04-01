@@ -96,12 +96,13 @@ Thumbs.db
     static std::string makefileContent() noexcept
     {
         return R"(
+
 # Compiler
 CC := gcc
 
 # Source files
 # Find all .c files from the project and libs.
-SRC_C := $(shell find src/core -name *.c) $(shell find libs -name *.c)
+SRC_C := $(shell find src -name *.c)
 
 # Object files
 OBJ_C := $(patsubst %.c,%.o,$(SRC_C))
@@ -124,7 +125,7 @@ TARGET := bin/main.bin
 all: $(TARGET)
 
 # Linking the final executable
-$(TARGET): $(OBJS) copy_assets
+$(TARGET): $(OBJS)
 	$(CXX) $^ -o $@ $(LIBS)
 
 # Rule to compile C source files
@@ -132,7 +133,7 @@ $(TARGET): $(OBJS) copy_assets
 	$(CC) -c $(CFLAGS) $< -o $@
 
 # Other targets
-run_main: all
+run_main: all copy_assets
 	$(TARGET)
 
 copy_assets:

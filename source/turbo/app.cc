@@ -22,6 +22,7 @@
 
 #include "app.h"
 #include "help.h"
+#include "buildoutput.h"
 #include "apputils.h"
 #include "editwindow.h"
 #include "widgets.h"
@@ -170,10 +171,14 @@ TMenuBar *TurboApp::initMenuBar(TRect r)
             *new TMenuItem( "~U~ppercase", cmSelUppercase, kbNoKey, hcNoContext ) +
             *new TMenuItem( "~L~owercase", cmSelLowercase, kbNoKey, hcNoContext ) +
             *new TMenuItem( "~C~apitalize", cmSelCapitalize, kbNoKey, hcNoContext ) +
+		*new TSubMenu( "~R~un", kbAltR ) +
+			*new TMenuItem( "~B~uild", cmBuild, kbF6, hcNoContext, "F6") +
+			*new TMenuItem( "~C~lean", cmClean, kbNoKey, hcNoContext) +
+			*new TMenuItem( "~R~un", cmRun, kbF5, hcNoContext, "F5" ) +
         *new TSubMenu( "~W~indows", kbAltW ) +
-            *new TMenuItem( "~Z~oom", cmZoom, kbF5, hcNoContext, "F5" ) +
+			*new TMenuItem( "~Z~oom", cmZoom, kbNoKey, hcNoContext ) +
             *new TMenuItem( "~R~esize/move",cmResize, kbCtrlF5, hcNoContext, "Ctrl-F5" ) +
-            *new TMenuItem( "~N~ext", cmEditorNext, kbF6, hcNoContext, "F6" ) +
+            *new TMenuItem( "~N~ext", cmEditorNext, kbCtrlP, hcNoContext, "Ctrl-P" ) +
             *new TMenuItem( "~P~revious", cmEditorPrev, kbShiftF6, hcNoContext, "Shift-F6" ) +
             *new TMenuItem( "~C~lose", cmClose, kbAltF3, hcNoContext, "Alt-F3" ) +
             *new TMenuItem( "Previous (in tree)", cmTreePrev, kbAltUp, hcNoContext, "Alt-Up" ) +
@@ -203,7 +208,7 @@ TStatusLine *TurboApp::initStatusLine( TRect r )
             *new TStatusItem( "~Ctrl-N~ New", kbNoKey, cmNew ) +
             *new TStatusItem( "~Ctrl-O~ Open", kbNoKey, cmOpen ) +
             *new TStatusItem( "~Ctrl-S~ Save", kbNoKey, cmSave ) +
-            *new TStatusItem( "~F6~ Next", kbF6, cmEditorNext ) +
+            *new TStatusItem( "~Ctrl-P~ Next", kbCtrlP, cmEditorNext ) +
             *new TStatusItem( "~F12~ Menu", kbF12, cmMenu ) +
             *new TStatusItem( 0, TKey(kbCtrlZ, kbShift), cmRedo ) +
             *new TStatusItem( 0, kbCtrlX, cmCut ) +
@@ -219,7 +224,7 @@ TStatusLine *TurboApp::initStatusLine( TRect r )
             *new TStatusItem( 0, TKey(kbAltTab, kbShift), cmEditorPrev ) +
             *new TStatusItem( 0, TKey('/', kbCtrlShift), cmToggleComment ) +
             *new TStatusItem( 0, TKey('_', kbCtrlShift), cmToggleComment ) +
-            *new TStatusItem( 0, kbF5, cmZoom ) +
+            // *new TStatusItem( 0, kbF5, cmZoom ) +
             *new TStatusItem( 0, kbCtrlF5, cmResize )
             );
 }
@@ -301,6 +306,15 @@ void TurboApp::handleEvent(TEvent &event)
 			case cmNewBasicGLFWCProject:
 				NewBasicCProject();
 				break;
+			case cmBuild:
+				BuildOutput::show(*deskTop, ".", event.message.command);
+				break;
+			case cmClean:
+				BuildOutput::show(*deskTop, ".", event.message.command);
+				break;
+			case cmRun:
+				BuildOutput::show(*deskTop, ".", event.message.command);
+				break;
             default:
                 handled = false;
                 break;
@@ -327,6 +341,7 @@ void TurboApp::parseArgs()
 			
 			if(fs::is_directory(argv[i]))
 			{
+				chdir(argv[i]);
 				folderTree->tree->loadFromFolder(argv[i]);
 			} else {
 				fileOpenOrNew(argv[i]);
