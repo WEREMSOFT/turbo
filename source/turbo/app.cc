@@ -301,7 +301,7 @@ void TurboApp::handleEvent(TEvent &event)
 				NewBasicCProject();
 				break;
 			case cmNewBasicSDL3CProject:
-				NewBasicCProject();
+				NewBasicSDL3CProject();
 				break;
 			case cmNewBasicGLFWCProject:
 				NewBasicGLFWCProject();
