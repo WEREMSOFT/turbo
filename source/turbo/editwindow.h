@@ -71,8 +71,10 @@ struct EditorWindow : public turbo::BasicEditorWindow
     void sizeLimits(TPoint &min, TPoint &max) override;
     void updateCommands() noexcept;
     void handleNotification(const SCNotification &scn, turbo::Editor &) override;
-
-    void closeBottomView();
+	
+	std::string getWordUnderCursor();
+    
+	void closeBottomView();
     void setBottomView(TView *view);
     template <class T, class ...Args>
     void openBottomView(Args&& ...args);

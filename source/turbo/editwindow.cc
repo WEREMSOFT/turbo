@@ -14,6 +14,7 @@
 #include "gotoline.h"
 #include <iostream>
 #include <sstream>
+#include <cstring>
 using std::ios;
 
 EditorWindow::EditorWindow( const TRect &bounds, TurboEditor &aEditor,
@@ -159,11 +160,12 @@ void EditorWindow::handleEvent(TEvent &ev)
                     break;
 				case cmHelp:
 					{
-						sptr_t len = editor.callScintilla(SCI_GETSELTEXT, 0, 0); // returns length of word chars string
-						editor.callScintilla(SCI_GETSELTEXT, 0, reinterpret_cast<sptr_t>(currentSelection));
-						currentSelection[len] = '\0'; // null-terminate
+						auto word = getWordUnderCursor();
+						auto len = word.length();
+						std::strncpy(currentSelection, word.c_str(), len);
+						currentSelection[len] = '\0';
+
 						ev.message.infoPtr = currentSelection;
-						// messageBox(0, "test: %s", wordChars);
 					}
 					handled = false;
 					break;
@@ -178,6 +180,17 @@ void EditorWindow::handleEvent(TEvent &ev)
         clearEvent(ev);
     else
         super::handleEvent(ev);
+}
+
+std::string EditorWindow::getWordUnderCursor()
+{
+    // Scintilla reference: https://scintilla.org/ScintillaDoc.html
+	auto &editor = getEditor();
+    auto pos = editor.callScintilla(SCI_GETCURRENTPOS, 0U, 0U);
+    auto start = editor.callScintilla(SCI_WORDSTARTPOSITION, pos, true);
+    auto end = editor.callScintilla( SCI_WORDENDPOSITION, pos, true);
+    return turbo::getRangePointer(editor.scintilla, start, end);
+	// return "printf";
 }
 
 void EditorWindow::setState(ushort aState, Boolean enable)
