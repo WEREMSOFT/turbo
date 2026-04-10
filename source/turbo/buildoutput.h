@@ -8,6 +8,9 @@
 class BuildOutput
 {
 public:
+	static process_t runRunAsync();
+	static int getProcessOutput(process_t p, char *buffer, size_t buffer_size);
+	static void processKill(process_t p);
 	TWindow* window;
 	TScrollBar *scrollBar;
 	TTerminal* interior;
@@ -26,6 +29,22 @@ public:
 #include <array>
 #include <string>
 #include <sstream>
+
+process_t BuildOutput::runRunAsync()
+{
+	process_t p = process_start("/bin/sh", "-c", "cd . && make run_main 2>&1", NULL);
+	return p;
+}
+
+int BuildOutput::getProcessOutput(process_t p, char *buffer, size_t buffer_size)
+{
+	return process_poll_output(p, buffer, sizeof(buffer));
+}
+
+void BuildOutput::processKill(process_t p)
+{
+	process_kill(p);
+}
 
 static std::string runMake(const char *workingDir)
 {
@@ -103,11 +122,12 @@ void BuildOutput::show(TGroup &owner, const char *workingDir, short command) noe
 {
 
 	std::string output;
-
+	process_t process;
 	switch(command)
 	{
 		case cmRun:
-			output = runRun(workingDir);
+			// output = runRun(workingDir);
+			process = runRunAsync();
 			break;
 		case cmBuild:
 		 	output = runMake(workingDir);
@@ -138,8 +158,15 @@ void BuildOutput::show(TGroup &owner, const char *workingDir, short command) noe
 	out = new std::ostream(interior);
 	owner.insert(window);
 
-	(*out) << output;
+ 	char buffer[MAX_PATH];
 
+	while(process_is_running(process))
+	{
+		int n = process_poll_output(process, buffer, sizeof(buffer));
+
+		(*out) << buffer;
+		usleep(100000); // 100ms
+	}
 }
 
 #endif

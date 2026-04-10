@@ -102,9 +102,9 @@ static inline process_t process_start(const char *path, ...) {
 /**
  * Polls for output. Returns bytes read, 0 if no data, -1 on EOF/Error.
  */
-static inline int process_poll_output(process_t *p, char *buffer, size_t buffer_size) {
-    if (p->stdout_fd < 0) return -1;
-    ssize_t n = read(p->stdout_fd, buffer, buffer_size - 1);
+static inline int process_poll_output(process_t p, char *buffer, size_t buffer_size) {
+    if (p.stdout_fd < 0) return -1;
+    ssize_t n = read(p.stdout_fd, buffer, buffer_size - 1);
     if (n > 0) {
         buffer[n] = '\0';
         return (int)n;
@@ -116,15 +116,36 @@ static inline int process_poll_output(process_t *p, char *buffer, size_t buffer_
 /**
  * Explicitly kills the process.
  */
-static inline void process_kill(process_t *p) {
-    if (p->pid > 0) {
-        kill(p->pid, SIGTERM);
+static inline void process_kill(process_t p) {
+    if (p.pid > 0) {
+        kill(p.pid, SIGTERM);
         int status;
-        waitpid(p->pid, &status, 0);
-        if (p->stdout_fd >= 0) close(p->stdout_fd);
-        p->pid = -1;
-        p->stdout_fd = -1;
+        waitpid(p.pid, &status, 0);
+        if (p.stdout_fd >= 0) close(p.stdout_fd);
+        p.pid = -1;
+        p.stdout_fd = -1;
     }
+}
+
+/**
+ * Checks if the process is still running.
+ * @return 1 if running, 0 if it has exited.
+ */
+static inline int process_is_running(process_t p) {
+    if (p.pid <= 0) return 0;
+    
+    int status;
+    pid_t result = waitpid(p.pid, &status, WNOHANG);
+    
+    if (result == 0) return 1; // Still running
+    
+    // Process has exited
+    if (p.stdout_fd >= 0) {
+        close(p.stdout_fd);
+        p.stdout_fd = -1;
+    }
+    p.pid = -1;
+    return 0;
 }
 
 #endif // PROCESS_H
