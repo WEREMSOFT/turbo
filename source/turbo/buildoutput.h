@@ -8,16 +8,19 @@
 class BuildOutput
 {
 public:
+	static std::ostream *out;
+	static process_t runningProcess;
 	static process_t runRunAsync();
+	static process_t runBuildAsync();
 	static int getProcessOutput(process_t p, char *buffer, size_t buffer_size);
 	static void processKill(process_t p);
 	TWindow* window;
 	TScrollBar *scrollBar;
 	TTerminal* interior;
-	std::ostream *out;
     static void show(TGroup &owner, const char *workingDir, short command) noexcept;
     static void clean(TGroup &owner, const char *workingDir) noexcept;
     static void run(TGroup &owner, const char *workingDir) noexcept;
+	static void updateWindow();
 };
 
 #include <tvision/help.h>
@@ -30,9 +33,18 @@ public:
 #include <string>
 #include <sstream>
 
+std::ostream* BuildOutput::out = nullptr;
+process_t BuildOutput::runningProcess = {};
+
 process_t BuildOutput::runRunAsync()
 {
 	process_t p = process_start("/bin/sh", "-c", "cd . && make run_main 2>&1", NULL);
+	return p;
+}
+
+process_t BuildOutput::runBuildAsync()
+{
+	process_t p = process_start("/bin/sh", "-c", "cd . && make build 2>&1", NULL);
 	return p;
 }
 
@@ -122,15 +134,15 @@ void BuildOutput::show(TGroup &owner, const char *workingDir, short command) noe
 {
 
 	std::string output;
-	process_t process;
 	switch(command)
 	{
 		case cmRun:
 			// output = runRun(workingDir);
-			process = runRunAsync();
+			BuildOutput::runningProcess = runRunAsync();
 			break;
 		case cmBuild:
 		 	output = runMake(workingDir);
+			// BuildOutput::runningProcess = runBuildAsync();
 			break;
 		case cmClean:
 		 	output = runClean(workingDir);
@@ -141,10 +153,8 @@ void BuildOutput::show(TGroup &owner, const char *workingDir, short command) noe
 	TScrollBar *scrollBar;
 	TScrollBar *hScrollBar;
 	TTerminal* interior;
-	std::ostream *out;
 
 	window = new TWindow(owner.getExtent().grow(-1, -1), "Build & Run", 0);
-	// window->palette = wpGrayWindow;
 
 	scrollBar = window->standardScrollBar(sbVertical | sbHandleKeyboard);
 	hScrollBar = window->standardScrollBar(sbHorizontal | sbHandleKeyboard);
@@ -158,14 +168,9 @@ void BuildOutput::show(TGroup &owner, const char *workingDir, short command) noe
 	out = new std::ostream(interior);
 	owner.insert(window);
 
- 	char buffer[MAX_PATH];
-
-	while(process_is_running(process))
+	if(output.length() > 0)
 	{
-		int n = process_poll_output(process, buffer, sizeof(buffer));
-
-		(*out) << buffer;
-		usleep(100000); // 100ms
+		(*out) << output;
 	}
 }
 

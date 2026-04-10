@@ -30,6 +30,7 @@
 #include "doctree.h"
 #include "foldertree.h"
 #include "projectcreator.h"
+#include "process.h"
 #include <turbo/fileeditor.h>
 #include <turbo/tpath.h>
 #include <variant>
@@ -240,7 +241,20 @@ void TurboApp::idle()
 {
     TApplication::idle();
     if (clock)
+	{
         clock->update();
+	}
+
+	if(BuildOutput::out != nullptr)
+	{
+		if(process_is_running(BuildOutput::runningProcess))
+		{
+			char buffer[MAX_PATH];
+			int n = process_poll_output(BuildOutput::runningProcess, buffer, sizeof(buffer));
+			if(n > 0)
+				(*BuildOutput::out) << buffer;
+		}
+	}
 }
 
 void TurboApp::getEvent(TEvent &event)
