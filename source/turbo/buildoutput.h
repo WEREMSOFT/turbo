@@ -11,6 +11,8 @@ class BuildOutput
 {
 public:
 	static std::ostream *out;
+	static std::ostream *progOut;
+	static bool isDebugging;
 	static process_t runningProcess;
 	static std::vector<std::string> breakpoints;
 	static process_t runRunAsync();
@@ -40,6 +42,8 @@ public:
 #include <algorithm>
 
 std::ostream* BuildOutput::out = nullptr;
+std::ostream* BuildOutput::progOut = nullptr;
+bool BuildOutput::isDebugging = false;
 process_t BuildOutput::runningProcess = {};
 std::vector<std::string> BuildOutput::breakpoints;
 
@@ -60,6 +64,8 @@ process_t BuildOutput::runBuildAsync()
 process_t BuildOutput::runDebugAsync()
 {
 	process_t p = process_start("./bin/main.bin", NULL);
+	process_cmd(&p, "-gdb-set exec-wrapper stdbuf -o0 -e0");
+	process_cmd(&p, "-gdb-set target-async on");
 	for (const auto& bp : breakpoints)
 	{
 		process_break(&p, bp.c_str());
@@ -130,6 +136,7 @@ void BuildOutput::show(TGroup &owner, const char *workingDir, short command) noe
 {
 
 	std::string output;
+	isDebugging = false;
 	switch(command)
 	{
 		case cmRun:
@@ -144,6 +151,7 @@ void BuildOutput::show(TGroup &owner, const char *workingDir, short command) noe
 		 	output = runClean(workingDir);
 			break;
 		case cmDebug:
+			isDebugging = true;
 			BuildOutput::runningProcess = runDebugAsync();
 			break;
 	}
@@ -153,19 +161,48 @@ void BuildOutput::show(TGroup &owner, const char *workingDir, short command) noe
 	TScrollBar *hScrollBar;
 	TTerminal* interior;
 
-	window = new TWindow(owner.getExtent().grow(-1, -1), "Build & Run", 0);
+	TRect r = owner.getExtent().grow(-1, -1);
+	if (isDebugging)
+	{
+		TRect r1 = r;
+		r1.b.y = r.a.y + r.b.y / 2;
+		TRect r2 = r;
+		r2.a.y = r1.b.y;
 
-	scrollBar = window->standardScrollBar(sbVertical | sbHandleKeyboard);
-	hScrollBar = window->standardScrollBar(sbHorizontal | sbHandleKeyboard);
-	
-	interior = new TTerminal( window->getExtent().grow(-1, -1),
-							  hScrollBar,	
-                              scrollBar,
-                              0x0F00);
+		// Debug Console
+		window = new TWindow(r1, "Debugger Console", 0);
+		scrollBar = window->standardScrollBar(sbVertical | sbHandleKeyboard);
+		hScrollBar = window->standardScrollBar(sbHorizontal | sbHandleKeyboard);
+		interior = new TTerminal(window->getExtent().grow(-1, -1), hScrollBar, scrollBar, 0x0F00);
+		window->insert(interior);
+		out = new std::ostream(interior);
+		owner.insert(window);
 
-    window->insert(interior);
-	out = new std::ostream(interior);
-	owner.insert(window);
+		// Program Output
+		window = new TWindow(r2, "Program Output", 0);
+		scrollBar = window->standardScrollBar(sbVertical | sbHandleKeyboard);
+		hScrollBar = window->standardScrollBar(sbHorizontal | sbHandleKeyboard);
+		interior = new TTerminal(window->getExtent().grow(-1, -1), hScrollBar, scrollBar, 0x0F00);
+		window->insert(interior);
+		progOut = new std::ostream(interior);
+		owner.insert(window);
+	}
+	else
+	{
+		window = new TWindow(r, "Build & Run", 0);
+
+		scrollBar = window->standardScrollBar(sbVertical | sbHandleKeyboard);
+		hScrollBar = window->standardScrollBar(sbHorizontal | sbHandleKeyboard);
+		
+		interior = new TTerminal( window->getExtent().grow(-1, -1),
+								hScrollBar,	
+								scrollBar,
+								0x0F00);
+
+		window->insert(interior);
+		out = new std::ostream(interior);
+		owner.insert(window);
+	}
 
 	if(output.length() > 0)
 	{

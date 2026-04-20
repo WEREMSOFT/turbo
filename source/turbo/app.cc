@@ -242,6 +242,31 @@ void TurboApp::shutDown()
     TApplication::shutDown();
 }
 
+static std::string mi_unquote(const char *s)
+{
+    std::string res;
+    if (*s == '"') s++;
+    while (*s && *s != '\r' && *s != '\n') {
+        if (*s == '"' && (*(s+1) == '\r' || *(s+1) == '\n' || *(s+1) == '\0')) break;
+        if (*s == '\\') {
+            s++;
+            if (!*s) break;
+            switch (*s) {
+                case 'n': res += '\n'; break;
+                case 'r': res += '\r'; break;
+                case 't': res += '\t'; break;
+                case '\\': res += '\\'; break;
+                case '"': res += '"'; break;
+                default: res += *s; break;
+            }
+        } else {
+            res += *s;
+        }
+        s++;
+    }
+    return res;
+}
+
 void TurboApp::idle()
 {
     TApplication::idle();
@@ -252,12 +277,41 @@ void TurboApp::idle()
 
 	if(BuildOutput::out != nullptr)
 	{
-		if(process_is_running(&BuildOutput::runningProcess))
+		char buffer[1024];
+		int n;
+		while ((n = process_poll_output(&BuildOutput::runningProcess, buffer, sizeof(buffer))) > 0)
 		{
-			char buffer[MAX_PATH];
-			int n = process_poll_output(&BuildOutput::runningProcess, buffer, sizeof(buffer));
-			if(n > 0)
+			if (BuildOutput::isDebugging)
+			{
+				process_feed(&BuildOutput::runningProcess, buffer, n);
+				char line[4096];
+				while (process_getline(&BuildOutput::runningProcess, line, sizeof(line)))
+				{
+					if (line[0] == '~' || line[0] == '&')
+					{
+						(*BuildOutput::out) << mi_unquote(line + 1);
+						BuildOutput::out->flush();
+					}
+					else if (line[0] == '@')
+					{
+						if (BuildOutput::progOut)
+						{
+							(*BuildOutput::progOut) << mi_unquote(line + 1);
+							BuildOutput::progOut->flush();
+						}
+					}
+					else
+					{
+						(*BuildOutput::out) << line << "\n";
+						BuildOutput::out->flush();
+					}
+				}
+			}
+			else
+			{
 				(*BuildOutput::out) << buffer;
+				BuildOutput::out->flush();
+			}
 		}
 	}
 }
@@ -338,13 +392,19 @@ void TurboApp::handleEvent(TEvent &event)
 				BuildOutput::show(*deskTop, ".", event.message.command);
 				break;
 			case cmStepInto:
+				if (BuildOutput::out) (*BuildOutput::out) << "Step into...\n";
 				process_step_into(&BuildOutput::runningProcess);
+				if (BuildOutput::out) BuildOutput::out->flush();
 				break;
 			case cmStepOver:
+				if (BuildOutput::out) (*BuildOutput::out) << "Step over...\n";
 				process_step_over(&BuildOutput::runningProcess);
+				if (BuildOutput::out) BuildOutput::out->flush();
 				break;
 			case cmStop:
+				if (BuildOutput::out) (*BuildOutput::out) << "Stopping...\n";
 				process_kill(&BuildOutput::runningProcess);
+				if (BuildOutput::out) BuildOutput::out->flush();
 				break;
 			case cmToggleBreakpoint:
 				if (!MRUlist.empty())
@@ -466,9 +526,20 @@ void TurboApp::fileOpenOrNew(const char *path)
     char abspath[MAXPATH];
     strnzcpy(abspath, path, MAXPATH);
     fexpand(abspath);
-    auto &scintilla = createScintilla();
-    if (turbo::readFile(scintilla, abspath, turbo::acceptMissingFilesOnOpen))
-        addEditor(scintilla, abspath);
+    
+    EditorWindow *ew = nullptr;
+    MRUlist.forEach([&](EditorWindow *w) {
+        if (w->filePath() == abspath)
+            ew = w;
+    });
+
+    if (ew) {
+        ew->focus();
+    } else {
+        auto &scintilla = createScintilla();
+        if (turbo::readFile(scintilla, abspath, turbo::acceptMissingFilesOnOpen))
+            addEditor(scintilla, abspath);
+    }
 }
 
 void TurboApp::fileOpenOrNew(const char *path, EditorWindow** editorWindow)
@@ -476,9 +547,21 @@ void TurboApp::fileOpenOrNew(const char *path, EditorWindow** editorWindow)
     char abspath[MAXPATH];
     strnzcpy(abspath, path, MAXPATH);
     fexpand(abspath);
-    auto &scintilla = createScintilla();
-    if (turbo::readFile(scintilla, abspath, turbo::acceptMissingFilesOnOpen))
-        addEditor(scintilla, abspath, editorWindow);
+
+    EditorWindow *ew = nullptr;
+    MRUlist.forEach([&](EditorWindow *w) {
+        if (w->filePath() == abspath)
+            ew = w;
+    });
+
+    if (ew) {
+        ew->focus();
+        if (editorWindow) *editorWindow = ew;
+    } else {
+        auto &scintilla = createScintilla();
+        if (turbo::readFile(scintilla, abspath, turbo::acceptMissingFilesOnOpen))
+            addEditor(scintilla, abspath, editorWindow);
+    }
 }
 
 void TurboApp::closeAll()

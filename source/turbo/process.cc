@@ -270,6 +270,14 @@ int process_poll_output(process_t *p, char *buffer, size_t size) {
     return -1;
 }
 
+int process_feed(process_t *p, const char *input, int n) {
+    return mi_buffer_feed(&p->mi_buf, input, n);
+}
+
+int process_getline(process_t *p, char *out, int max) {
+    return mi_buffer_getline(&p->mi_buf, out, max);
+}
+
 // ------------------------------------------------------------
 // Command interface
 // ------------------------------------------------------------

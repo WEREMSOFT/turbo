@@ -50,6 +50,8 @@ int process_is_running(process_t *p);
 // --- Raw I/O ---
 
 int process_poll_output(process_t *p, char *buffer, size_t size);
+int process_feed(process_t *p, const char *input, int n);
+int process_getline(process_t *p, char *out, int max);
 
 // --- Debugger control ---
 
