@@ -194,15 +194,19 @@ process_t process_start(const char *path, char *const argv[]) {
 
         prctl(PR_SET_PDEATHSIG, SIGTERM);
 
-        char *gdb_argv[] = {
-            (char *)"gdb",
-            (char *)"--interpreter=mi2",
-            (char *)"--quiet",
-            (char *)path,
-            NULL
-        };
+        if (argv) {
+            execvp(path, argv);
+        } else {
+            char *gdb_argv[] = {
+                (char *)"gdb",
+                (char *)"--interpreter=mi2",
+                (char *)"--quiet",
+                (char *)path,
+                NULL
+            };
 
-        execvp("gdb", gdb_argv);
+            execvp("gdb", gdb_argv);
+        }
         perror("execvp failed");
         exit(1);
     }

@@ -4,6 +4,7 @@
 #define Uses_TTerminal
 #include <tvision/tv.h>
 #include "process.h"
+#include "cmds.h"
 
 class BuildOutput
 {
@@ -12,6 +13,7 @@ public:
 	static process_t runningProcess;
 	static process_t runRunAsync();
 	static process_t runBuildAsync();
+	static process_t runDebugAsync();
 	static int getProcessOutput(process_t p, char *buffer, size_t buffer_size);
 	static void processKill(process_t p);
 	TWindow* window;
@@ -38,13 +40,22 @@ process_t BuildOutput::runningProcess = {};
 
 process_t BuildOutput::runRunAsync()
 {
-	process_t p = process_start("cd . && make run_main 2>&1", NULL);
+	char *args[] = {(char*)"sh", (char*)"-c", (char*)"cd . && make run_main 2>&1", NULL};
+	process_t p = process_start("sh", args);
 	return p;
 }
 
 process_t BuildOutput::runBuildAsync()
 {
-	process_t p = process_start("make build 2>&1", NULL);
+	char *args[] = {(char*)"sh", (char*)"-c", (char*)"make build 2>&1", NULL};
+	process_t p = process_start("sh", args);
+	return p;
+}
+
+process_t BuildOutput::runDebugAsync()
+{
+	process_t p = process_start("./bin/main.bin", NULL);
+	process_run(&p);
 	return p;
 }
 
@@ -146,6 +157,9 @@ void BuildOutput::show(TGroup &owner, const char *workingDir, short command) noe
 			break;
 		case cmClean:
 		 	output = runClean(workingDir);
+			break;
+		case cmDebug:
+			BuildOutput::runningProcess = runDebugAsync();
 			break;
 	}
 

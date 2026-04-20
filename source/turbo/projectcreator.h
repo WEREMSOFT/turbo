@@ -185,6 +185,8 @@ TARGET := bin/main.bin
 # Phony targets
 .PHONY: all run_main clean deep_clean copy_assets web statistics
 
+build: all copy_assets
+
 # Default target
 all: $(TARGET)
 

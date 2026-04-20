@@ -176,6 +176,10 @@ TMenuBar *TurboApp::initMenuBar(TRect r)
 			*new TMenuItem( "~B~uild", cmBuild, kbF6, hcNoContext, "F6") +
 			*new TMenuItem( "~C~lean", cmClean, kbNoKey, hcNoContext) +
 			*new TMenuItem( "~R~un", cmRun, kbF5, hcNoContext, "F5" ) +
+			*new TMenuItem( "~D~ebug", cmDebug, kbNoKey, hcNoContext ) +
+			*new TMenuItem( "~S~tep into", cmStepInto, kbF7, hcNoContext, "F7" ) +
+			*new TMenuItem( "Step ~O~ver", cmStepOver, kbF8, hcNoContext, "F8" ) +
+			*new TMenuItem( "Sto~p~", cmStop, kbShiftF5, hcNoContext, "Shift-F5" ) +
         *new TSubMenu( "~W~indows", kbAltW ) +
 			*new TMenuItem( "~Z~oom", cmZoom, kbNoKey, hcNoContext ) +
             *new TMenuItem( "~R~esize/move",cmResize, kbCtrlF5, hcNoContext, "Ctrl-F5" ) +
@@ -187,7 +191,7 @@ TMenuBar *TurboApp::initMenuBar(TRect r)
 			*new TMenuItem( "~T~ile", cmTile, kbNoKey, hcNoContext ) +
 	        *new TMenuItem( "C~a~scade", cmCascade, kbNoKey, hcNoContext ) +
         *new TSubMenu( "~S~ettings", kbAltS ) +
-            *new TMenuItem( "Toggle Line ~N~umbers", cmToggleLineNums, kbF8, hcNoContext, "F8" ) +
+            *new TMenuItem( "Toggle Line ~N~umbers", cmToggleLineNums, kbNoKey, hcNoContext ) +
             *new TMenuItem( "Toggle Line ~W~rapping", cmToggleWrap, kbF9, hcNoContext, "F9" ) +
             *new TMenuItem( "Toggle Auto ~I~ndent", cmToggleIndent, kbNoKey, hcNoContext ) +
             *new TMenuItem( "Toggle Document ~T~ree View", cmToggleTree, kbNoKey, hcNoContext ) +
@@ -328,6 +332,18 @@ void TurboApp::handleEvent(TEvent &event)
 				break;
 			case cmRun:
 				BuildOutput::show(*deskTop, ".", event.message.command);
+				break;
+			case cmDebug:
+				BuildOutput::show(*deskTop, ".", event.message.command);
+				break;
+			case cmStepInto:
+				process_step_into(&BuildOutput::runningProcess);
+				break;
+			case cmStepOver:
+				process_step_over(&BuildOutput::runningProcess);
+				break;
+			case cmStop:
+				process_kill(&BuildOutput::runningProcess);
 				break;
             default:
                 handled = false;

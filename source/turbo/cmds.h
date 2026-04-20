@@ -25,6 +25,10 @@ enum : ushort
     cmGoToLine,
     cmReplaceOne,
     cmReplaceAll,
+    cmDebug,
+    cmStepInto,
+    cmStepOver,
+    cmStop,
     // Commands that cannot be disabled.
     cmToggleTree = 1000,
     cmToggleFolderTree,
