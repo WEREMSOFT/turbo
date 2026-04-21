@@ -144,6 +144,7 @@ TMenuBar *TurboApp::initMenuBar(TRect r)
             *new TMenuItem( "~N~ew", cmNew, kbCtrlN, hcNoContext, "Ctrl-N" ) +
             *new TMenuItem( "~O~pen", cmOpen, kbCtrlO, hcNoContext, "Ctrl-O" ) +
             *new TMenuItem( "Open Folder", cmOpenFolder, kbNoKey, hcNoContext ) +
+            *new TMenuItem( "~R~efresh Folder", cmRefreshFolder, kbAltF5, hcNoContext, "Alt-F5" ) +
             newLine() +
             *new TMenuItem( "~S~ave", cmSave, kbCtrlS, hcNoContext, "Ctrl-S" ) +
             *new TMenuItem( "S~a~ve As...", cmSaveAs, kbNoKey, hcNoContext ) +
@@ -364,6 +365,9 @@ void TurboApp::handleEvent(TEvent &event)
             case cmCloseAll: closeAll(); break;
             case cmToggleTree: toggleTreeView(); break;
             case cmToggleFolderTree: toggleFolderView(); break;
+			case cmRefreshFolder:
+				folderTree->tree->loadFromFolder(fs::current_path().string());
+				break;
             case cmTreeNext:
                 if (docTree)
                     docTree->tree->focusNext();
