@@ -312,6 +312,9 @@ void TurboApp::idle()
 					else
 					{
 						// Likely raw program output (not wrapped by GDB)
+						if (strncmp(line, "(gdb)", 5) == 0)
+							continue;
+
 						if (BuildOutput::progOut)
 						{
 							(*BuildOutput::progOut) << line;
