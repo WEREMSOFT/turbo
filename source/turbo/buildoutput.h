@@ -12,6 +12,7 @@ class BuildOutput
 public:
 	static std::ostream *out;
 	static std::ostream *progOut;
+	static std::ostream *localsOut;
 	static bool isDebugging;
 	static process_t runningProcess;
 	static std::vector<std::string> breakpoints;
@@ -44,6 +45,7 @@ public:
 
 std::ostream* BuildOutput::out = nullptr;
 std::ostream* BuildOutput::progOut = nullptr;
+std::ostream* BuildOutput::localsOut = nullptr;
 bool BuildOutput::isDebugging = false;
 process_t BuildOutput::runningProcess = {};
 std::vector<std::string> BuildOutput::breakpoints;
@@ -172,9 +174,12 @@ void BuildOutput::show(TGroup &owner, const char *workingDir, short command) noe
 	if (isDebugging)
 	{
 		TRect r1 = r;
-		r1.b.y = r.a.y + r.b.y / 2;
+		r1.b.y = r.a.y + r.b.y / 3;
 		TRect r2 = r;
 		r2.a.y = r1.b.y;
+		r2.b.y = r.a.y + 2 * r.b.y / 3;
+		TRect r3 = r;
+		r3.a.y = r2.b.y;
 
 		// Debug Console
 		window = new TWindow(r1, "Debugger Console", 0);
@@ -192,6 +197,15 @@ void BuildOutput::show(TGroup &owner, const char *workingDir, short command) noe
 		interior = new TTerminal(window->getExtent().grow(-1, -1), hScrollBar, scrollBar, 0x0F00);
 		window->insert(interior);
 		progOut = new std::ostream(interior);
+		owner.insert(window);
+
+		// Locals
+		window = new TWindow(r3, "Local Variables", 0);
+		scrollBar = window->standardScrollBar(sbVertical | sbHandleKeyboard);
+		hScrollBar = window->standardScrollBar(sbHorizontal | sbHandleKeyboard);
+		interior = new TTerminal(window->getExtent().grow(-1, -1), hScrollBar, scrollBar, 0x0F00);
+		window->insert(interior);
+		localsOut = new std::ostream(interior);
 		owner.insert(window);
 	}
 	else

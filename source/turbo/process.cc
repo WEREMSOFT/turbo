@@ -351,6 +351,10 @@ int process_read_memory(process_t *p, const char *addr, int count) {
 // High-level result extraction
 // ------------------------------------------------------------
 
+int process_parse_line(const char *line, mi_result_t *out) {
+    return mi_parse_line(line, out);
+}
+
 int process_next_result(process_t *p, mi_result_t *out) {
     char tmp[512];
     char line[512];

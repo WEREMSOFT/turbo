@@ -308,6 +308,50 @@ void TurboApp::idle()
 					else if (c == '^' || c == '*' || c == '+' || c == '=')
 					{
 						// MI Result or Notification records
+						if (strncmp(line, "*stopped", 8) == 0)
+						{
+							process_locals(&BuildOutput::runningProcess);
+						}
+						else if (c == '^' && strstr(line, "variables=["))
+						{
+							if (BuildOutput::localsOut)
+							{
+								(*BuildOutput::localsOut) << "Local Variables:\n";
+								(*BuildOutput::localsOut) << "----------------\n";
+								
+								const char *p = strstr(line, "variables=[");
+								if (p) {
+									p += 11; // Skip "variables=["
+									while (*p && *p != ']') {
+										const char *nameStart = strstr(p, "name=\"");
+										const char *valueStart = strstr(p, "value=\"");
+										
+										if (nameStart && valueStart && (nameStart < valueStart || valueStart < nameStart)) {
+											// Extract name
+											const char *nS = strstr(p, "name=\"") + 6;
+											const char *nE = strchr(nS, '"');
+											// Extract value
+											const char *vS = strstr(p, "value=\"") + 7;
+											const char *vE = strchr(vS, '"');
+											
+											if (nE && vE) {
+												std::string name(nS, nE - nS);
+												std::string value(vS, vE - vS);
+												(*BuildOutput::localsOut) << name << " = " << value << "\n";
+												// Move p past this variable entry
+												p = (nE > vE ? nE : vE) + 1;
+												// Look for next entry
+												const char *nextBrace = strchr(p, '{');
+												if (nextBrace) p = nextBrace;
+												else break;
+											} else break;
+										} else break;
+									}
+								}
+								(*BuildOutput::localsOut) << "\n";
+								BuildOutput::localsOut->flush();
+							}
+						}
 						(*BuildOutput::out) << line;
 						BuildOutput::out->flush();
 					}

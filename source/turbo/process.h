@@ -74,6 +74,7 @@ int process_read_memory(process_t *p, const char *addr, int count);
 
 // --- MI parsing ---
 
+int process_parse_line(const char *line, mi_result_t *out);
 int process_next_result(process_t *p, mi_result_t *out);
 
 #ifdef __cplusplus
