@@ -127,6 +127,7 @@ void TurboHelp::executeManPageDialog(TGroup &owner) noexcept
     dialog->insert(new TButton(TRect(27, 5, 37, 7), "OK", cmOK, bfDefault));
     dialog->insert(new TButton(TRect(38, 5, 48, 7), "Cancel", cmCancel, bfNormal));
 
+    input->select();
     if (owner.execView(dialog) == cmOK)
     {
         char buffer[129];
